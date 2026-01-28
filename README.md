@@ -1,90 +1,131 @@
-The guide for contributors (or curious developers) who want to run Twenty locally.
+# 🚀 Twenty CRM - Local Development Setup
 
-Prerequisites
-Before you can install and use Twenty, make sure you install the following on your computer:
+This guide provides step-by-step instructions to set up the **Twenty CRM** development environment on your local machine (Linux, MacOS, or Windows WSL).
 
+## 📋 Prerequisites
 
-Linux and MacOS :
+### 🐧 Linux & 🍎 MacOS
 
-Git https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
-Node v24.5.0 https://nodejs.org/en/download
-yarn v4 https://yarnpkg.com/getting-started/install
-nvm https://github.com/nvm-sh/nvm/blob/master/README.md
+* **Git**: [Install Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+* **Node.js**: Version **v24.5.0** [Download](https://nodejs.org/en/download)
+* **Yarn**: Version **v4** [Getting Started](https://yarnpkg.com/getting-started/install)
+* **NVM**: [Node Version Manager](https://github.com/nvm-sh/nvm)
 
+### 🪟 Windows (WSL)
 
+Open PowerShell as Administrator and run:
 
-Windows (WSL)
-
-Install WSL Open PowerShell as Administrator and run:
-
+```powershell
 wsl --install
 
-Install and configure git
-sudo apt-get install git
+```
 
+Then, inside your WSL terminal, install and configure the necessary tools:
+
+```bash
+# Install Git
+sudo apt-get update && sudo apt-get install git -y
+
+# Configure Git
 git config --global user.name "Your Name"
-
 git config --global user.email "youremail@domain.com"
 
-Install nvm, node.js and yarn
-sudo apt-get install curl
-
+# Install NVM, Node.js and Yarn
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+# Restart your terminal, then run:
+nvm install 24.5.0
+nvm use 24.5.0
+corepack enable # Enables Yarn 4
 
-Close and reopen your terminal to use nvm. Then run the following commands.
-nvm install # installs recommended node version
+```
 
-nvm use # use recommended node version
+## 🛠 Installation Steps
 
-corepack enable
+### Step 1: Clone the Repository
 
-Step 1: Git Clone
+```bash
 git clone https://github.com/twentyhq/twenty.git
-
-Step 2: Position yourself at the root
 cd twenty
+# If you need version v1.15.0 specifically:
+git checkout v1.15.0
 
+```
 
-Step 3: Set up a PostgreSQL Database
+### Step 2: Set up Databases (Docker)
 
+Twenty requires PostgreSQL and Redis. Use the provided `make` commands to spin them up quickly:
+
+```bash
+# Start PostgreSQL
 make -C packages/twenty-docker postgres-on-docker
 
-Step 4: Set up a Redis Database (cache)
+# Start Redis (Cache)
 make -C packages/twenty-docker redis-on-docker
 
+```
 
-Step 5: Setup environment variables
+### Step 3: Setup Environment Variables
 
+```bash
 cp ./packages/twenty-front/.env.example ./packages/twenty-front/.env
 cp ./packages/twenty-server/.env.example ./packages/twenty-server/.env
 
-Step 6: Installing dependencies
+```
+
+### Step 4: Install Dependencies
+
+```bash
 yarn
 
+```
 
-Step 7: Running the project
-Set up your database with the following command:
+### Step 5: Initialize & Run the Project
+
+Reset and prepare your database:
+
+```bash
 npx nx database:reset twenty-server
 
-Start the server, the worker and the frontend services:
+```
 
-npx nx start twenty-server
-npx nx worker twenty-server
-npx nx start twenty-front
+Start all services (Frontend, Server, and Worker) at once:
 
-Alternatively, you can start all services at once:
+```bash
 npx nx start
 
-Step 8: Use Twenty
+```
 
-Frontend
+---
 
-Twenty’s frontend will be running at http://localhost:3001. You can log in using the default demo account: tim@apple.dev (password: tim@apple.dev)
+## 💾 Step 6: Restore Backup Data (Optional)
 
-Backend
-Twenty’s server will be up and running at http://localhost:3000
-The GraphQL API can be accessed at http://localhost:3000/graphql
-The REST API can be reached at http://localhost:3000/rest
+If you have a `backup.sql` file and wish to restore it into your local Docker container, use the following command:
 
-To restore backup data, run
-cat backup.sql | docker exec -i {db_container_name_or_id} psql -U {postgres_user}
+```bash
+cat backup.sql | docker exec -i twenty-docker-postgres-1 psql -U twenty
+
+```
+
+*(Note: Use `docker ps` to verify the exact name of your postgres container if the command above fails).*
+
+---
+
+## 🌐 Accessing Twenty
+
+| Service | URL | Default Credentials |
+| --- | --- | --- |
+| **Frontend** | `http://localhost:3001` | User: `tim@apple.dev` / Pass: `tim@apple.dev` |
+| **Backend API** | `http://localhost:3000` | - |
+| **GraphQL API** | `http://localhost:3000/graphql` | - |
+| **REST API** | `http://localhost:3000/rest` | - |
+
+---
+
+## 💡 Useful Commands
+
+* **Run Server only:** `npx nx start twenty-server`
+* **Run Frontend only:** `npx nx start twenty-front`
+* **Run Worker only:** `npx nx worker twenty-server`
+
+---
+
